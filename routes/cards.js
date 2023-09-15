@@ -1,6 +1,8 @@
 // файл маршрутов
 const router = require('express').Router();
-const { createCard, getCards, deleteCardById, putLikeCardById, putDislikeCardById } = require('../controllers/cards');
+const {
+  createCard, getCards, deleteCardById, putLikeCardById, putDislikeCardById,
+} = require('../controllers/cards');
 
 router.post('/', createCard);
 router.get('/', getCards);

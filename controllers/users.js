@@ -1,15 +1,15 @@
 // файл контроллеров
-const mongoose = require("mongoose");
-const User = require("../models/user");
+const mongoose = require('mongoose');
+const User = require('../models/user');
 
 const ERROR_UNEXPECTED = 500;
 
 const { ValidationError } = mongoose.Error;
 
-const NotFoundError = require("../errors/NotFound"); // 404 code
-const BadRequestError = require("../errors/BadRequest"); // 400 code
+const NotFoundError = require('../errors/NotFound'); // 404 code
+const BadRequestError = require('../errors/BadRequest'); // 400 code
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   // TODO сделать проверка что боди не пусто
 
@@ -17,8 +17,10 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        throw new BadRequestError(
-          `Переданы некорректные данные при создании пользователя`
+        next(
+          new BadRequestError(
+            'Переданы некорректные данные при создании пользователя',
+          ),
         );
       } else {
         res
@@ -28,12 +30,12 @@ module.exports.createUser = (req, res) => {
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        throw new BadRequestError(`Переданные данные некорректны`);
+        next(new BadRequestError('Переданы некорректные данные'));
       } else {
         res
           .status(ERROR_UNEXPECTED)
@@ -42,12 +44,12 @@ module.exports.getUsers = (req, res) => {
     });
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === "NotFound") {
-        throw new NotFoundError(`Пользователь с такими данными не найден`);
+      if (err.name === 'NotFound') {
+        next(new NotFoundError('Пользователь с такими данными не найден'));
       } else {
         res
           .status(ERROR_UNEXPECTED)
@@ -56,18 +58,20 @@ module.exports.getUserById = (req, res) => {
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        throw new BadRequestError(
-          `Переданы некорректные данные при обновлении аватара`
+        next(
+          new BadRequestError(
+            'Переданы некорректные данные при обновлении аватара',
+          ),
         );
-      } else if (err.name === "NotFound") {
-        throw new NotFoundError(`Пользователь с указанным _id не найден`);
+      } else if (err.name === 'NotFound') {
+        throw new NotFoundError('Пользователь с указанным _id не найден');
       } else {
         res
           .status(ERROR_UNEXPECTED)
@@ -76,18 +80,20 @@ module.exports.updateUserAvatar = (req, res) => {
     });
 };
 
-module.exports.updateUserProfile = (req, res) => {
+module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { name, about })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        throw new BadRequestError(
-          `Переданы некорректные данные при обновлении профиля`
+        next(
+          new BadRequestError(
+            'Переданы некорректные данные при обновлении профиля',
+          ),
         );
-      } else if (err.name === "NotFound") {
-        throw new NotFoundError(`Пользователь с указанным _id не найден`);
+      } else if (err.name === 'NotFound') {
+        throw new NotFoundError('Пользователь с указанным _id не найден');
       } else {
         res
           .status(ERROR_UNEXPECTED)
