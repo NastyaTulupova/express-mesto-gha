@@ -5,7 +5,7 @@ const Card = require('../models/card');
 
 const ERROR_UNEXPECTED = 500;
 
-const { ValidationError } = mongoose.Error;
+const { ValidationError, CastError } = mongoose.Error;
 
 const NotFoundError = require('../errors/NotFound'); // 404 code
 const BadRequestError = require('../errors/BadRequest'); // 400 code
@@ -48,7 +48,9 @@ module.exports.deleteCardById = (req, res, next) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'NotFound') {
+      if (err instanceof CastError) {
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else if (err.name === 'NotFound') {
         next(new NotFoundError('Карточка с такими данными не найдена'));
       } else {
         res
@@ -66,12 +68,8 @@ module.exports.putLikeCardById = (req, res, next) => {
   )
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err instanceof ValidationError) {
-        next(
-          new BadRequestError(
-            'Переданы некорректные данные для постановки лайка',
-          ),
-        );
+      if (err instanceof CastError) {
+        next(new BadRequestError('Переданы некорректные данные'));
       } else if (err.name === 'NotFound') {
         next(new NotFoundError('Карточка с указанным _id не найдена'));
       } else {
@@ -90,10 +88,8 @@ module.exports.putDislikeCardById = (req, res, next) => {
   )
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err instanceof ValidationError) {
-        next(
-          new BadRequestError('Переданы некорректные данные для снятия лайка'),
-        );
+      if (err instanceof CastError) {
+        next(new BadRequestError('Переданы некорректные данные'));
       } else if (err.name === 'NotFound') {
         next(new NotFoundError('Карточка с указанным _id не найдена'));
       } else {

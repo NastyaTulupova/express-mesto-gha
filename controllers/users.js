@@ -4,7 +4,7 @@ const User = require('../models/user');
 
 const ERROR_UNEXPECTED = 500;
 
-const { ValidationError } = mongoose.Error;
+const { ValidationError, CastError } = mongoose.Error;
 
 const NotFoundError = require('../errors/NotFound'); // 404 code
 const BadRequestError = require('../errors/BadRequest'); // 400 code
@@ -48,8 +48,10 @@ module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'NotFound') {
-        next(new NotFoundError('Пользователь с такими данными не найден'));
+      if (err instanceof CastError) {
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else if (err.name === 'NotFound') {
+        next(new NotFoundError('Пользователь с указанным _id не найден'));
       } else {
         res
           .status(ERROR_UNEXPECTED)
