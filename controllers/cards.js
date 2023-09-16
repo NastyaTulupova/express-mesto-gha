@@ -40,13 +40,14 @@ module.exports.getCards = (req, res) => {
 
 module.exports.deleteCardById = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
+    .orFail(() => new Error('NotFoundError'))
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'Not Found') {
+      } else if (err.message === 'NotFoundError') {
         res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Карточка с указанным _id не найдена' });
@@ -64,13 +65,14 @@ module.exports.putLikeCardById = (req, res) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
+    .orFail(() => new Error('NotFoundError'))
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'Not Found') {
+      } else if (err.message === 'NotFoundError') {
         res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Карточка с указанным _id не найдена' });
@@ -88,13 +90,14 @@ module.exports.putDislikeCardById = (req, res) => {
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
   )
+    .orFail(() => new Error('NotFoundError'))
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'Not Found') {
+      } else if (err.message === 'NotFoundError') {
         res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Карточка с указанным _id не найдена' });

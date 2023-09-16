@@ -1,4 +1,3 @@
-/* eslint-disable brace-style */
 // файл контроллеров
 const User = require('../models/user');
 
@@ -41,13 +40,14 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(() => new Error('NotFoundError'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         res
           .status(ERROR_VALIDATION)
           .send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'Not Found') {
+      } else if (err.message === 'NotFoundError') {
         res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Пользователь с указанным _id не найден' });
@@ -63,6 +63,7 @@ module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+    .orFail(() => new Error('NotFoundError'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -71,8 +72,7 @@ module.exports.updateUserAvatar = (req, res) => {
           .send({
             message: 'Переданы некорректные данные при обновлении аватара',
           });
-      }
-      else if (err.message === 'Not Found') {
+      } else if (err.message === 'NotFoundError') {
         res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Пользователь с указанным _id не найден' });
@@ -88,6 +88,7 @@ module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+    .orFail(() => new Error('NotFoundError'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -96,12 +97,11 @@ module.exports.updateUserProfile = (req, res) => {
           .send({
             message: 'Переданы некорректные данные при обновлении профиля',
           });
-      } else if (err.message === 'Not Found') {
+      } else if (err.message === 'NotFoundError') {
         res
           .status(ERROR_NOT_FOUND)
           .send({ message: 'Пользователь с указанным _id не найден' });
-      }
-      else {
+      } else {
         res
           .status(ERROR_UNEXPECTED)
           .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
