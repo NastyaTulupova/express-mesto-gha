@@ -1,17 +1,13 @@
+/* eslint-disable brace-style */
 // файл контроллеров
-const mongoose = require('mongoose');
 const User = require('../models/user');
 
 const ERROR_UNEXPECTED = 500;
 const ERROR_VALIDATION = 400;
+const ERROR_NOT_FOUND = 404;
 
-const {
-  // ValidationError,
-  CastError,
-} = mongoose.Error;
-
-const NotFoundError = require('../errors/NotFound'); // 404 code
-const BadRequestError = require('../errors/BadRequest'); // 400 code
+// const NotFoundError = require('../errors/NotFound'); 404 code
+// const BadRequestError = require('../errors/BadRequest');  400 code
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
@@ -51,14 +47,18 @@ module.exports.getUsers = (req, res) => {
     });
 };
 
-module.exports.getUserById = (req, res, next) => {
+module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err instanceof CastError) {
-        next(new BadRequestError('Переданы некорректные данные'));
-      } else if (err.name === 'NotFound') {
-        next(new NotFoundError('Пользователь с указанным _id не найден'));
+      if (err.name === 'CastError') {
+        res
+          .status(ERROR_VALIDATION)
+          .send({ message: 'Переданы некорректные данные' });
+      } else if (err.message === 'Not Found') {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден' });
       } else {
         res
           .status(ERROR_UNEXPECTED)
@@ -79,15 +79,20 @@ module.exports.updateUserAvatar = (req, res) => {
           .send({
             message: 'Переданы некорректные данные при обновлении аватара',
           });
-      } else if (err.name === 'NotFound') {
-      /* if (err instanceof ValidationError) {
+      }
+      /* else if (err.name === 'NotFound') {
+      if (err instanceof ValidationError) {
         next(
           new BadRequestError(
             "Переданы некорректные данные при обновлении аватара"
           )
         );
-      } */
-        throw new NotFoundError('Пользователь с указанным _id не найден');
+      }
+        throw new NotFoundError('Пользователь с указанным _id не найден'); } */
+      else if (err.message === 'Not Found') {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден' });
       } else {
         res
           .status(ERROR_UNEXPECTED)
@@ -115,9 +120,15 @@ module.exports.updateUserProfile = (req, res) => {
           .send({
             message: 'Переданы некорректные данные при обновлении профиля',
           });
-      } else if (err.name === 'NotFound') {
-        throw new NotFoundError('Пользователь с указанным _id не найден');
-      } else {
+      } else if (err.message === 'Not Found') {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден' });
+      }
+      //  else if (err.name === 'NotFound') {
+      //   throw new NotFoundError('Пользователь с указанным _id не найден');
+      // }
+      else {
         res
           .status(ERROR_UNEXPECTED)
           .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
