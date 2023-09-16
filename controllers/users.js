@@ -59,10 +59,10 @@ module.exports.getUserById = (req, res) => {
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
-  const { avatar } = req.body;
+module.exports.updateUserProfile = (req, res) => {
+  const { name, about } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(() => new Error('NotFoundError'))
     .then((user) => res.send(user))
     .catch((err) => {
@@ -70,7 +70,7 @@ module.exports.updateUserAvatar = (req, res) => {
         res
           .status(ERROR_VALIDATION)
           .send({
-            message: 'Переданы некорректные данные при обновлении аватара',
+            message: 'Переданы некорректные данные при обновлении профиля',
           });
       } else if (err.message === 'NotFoundError') {
         res
@@ -84,10 +84,10 @@ module.exports.updateUserAvatar = (req, res) => {
     });
 };
 
-module.exports.updateUserProfile = (req, res) => {
-  const { name, about } = req.body;
+module.exports.updateUserAvatar = (req, res) => {
+  const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(() => new Error('NotFoundError'))
     .then((user) => res.send(user))
     .catch((err) => {
@@ -95,7 +95,7 @@ module.exports.updateUserProfile = (req, res) => {
         res
           .status(ERROR_VALIDATION)
           .send({
-            message: 'Переданы некорректные данные при обновлении профиля',
+            message: 'Переданы некорректные данные при обновлении аватара',
           });
       } else if (err.message === 'NotFoundError') {
         res
