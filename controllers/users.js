@@ -1,14 +1,15 @@
 // файл контроллеров
 const User = require('../models/user');
 
-const { ERROR_UNEXPECTED, ERROR_VALIDATION, ERROR_NOT_FOUND } = require('../errors/errors');
+const {
+  ERROR_UNEXPECTED, ERROR_VALIDATION, ERROR_NOT_FOUND, SUCCESS_CODE,
+} = require('../codes/codes');
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  // TODO сделать проверка что боди не пусто
 
   User.create({ name, about, avatar })
-    .then((user) => res.send(user))
+    .then((user) => res.status(SUCCESS_CODE).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
@@ -26,15 +27,9 @@ module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send(users))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданы некорректные данные' });
-      } else {
-        res
-          .status(ERROR_UNEXPECTED)
-          .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
-      }
+      res
+        .status(ERROR_UNEXPECTED)
+        .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
     });
 };
 

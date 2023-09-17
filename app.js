@@ -1,13 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
 const router = require('./routes/index');
-const { ERROR_NOT_FOUND } = require('./errors/errors');
 
 // Слушаем 3000 порт
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, DB_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
 
 const app = express();
 app.use(express.json());
+app.use(helmet());
 
 // временно хардкодим автора карточки
 app.use((req, res, next) => {
@@ -19,13 +20,9 @@ app.use((req, res, next) => {
 });
 
 // подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect(DB_URL);
 
 app.use(router);
-
-app.use('/', (reg, res) => {
-  res.status(ERROR_NOT_FOUND).send({ message: 'Произошла непредвиденная ошибка' });
-});
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает

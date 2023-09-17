@@ -2,13 +2,15 @@
 
 const Card = require('../models/card');
 
-const { ERROR_UNEXPECTED, ERROR_VALIDATION, ERROR_NOT_FOUND } = require('../errors/errors');
+const {
+  ERROR_UNEXPECTED, ERROR_VALIDATION, ERROR_NOT_FOUND, SUCCESS_CODE,
+} = require('../codes/codes');
 
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.send(card))
+    .then((card) => res.status(SUCCESS_CODE).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
@@ -26,15 +28,9 @@ module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданы некорректные данные' });
-      } else {
-        res
-          .status(ERROR_UNEXPECTED)
-          .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
-      }
+      res
+        .status(ERROR_UNEXPECTED)
+        .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
     });
 };
 
