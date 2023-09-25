@@ -1,105 +1,129 @@
 // файл контроллеров
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const ErrorAuthorization = require('../errors/errorAuthorization');
+const ErrorValidation = require('../errors/errorValidation');
+const ErrorSameEmail = require('../errors/errorSameEmail');
+const ErrorNotFound = require('../errors/errorNotFound');
 
 const {
-  ERROR_UNEXPECTED, ERROR_VALIDATION, ERROR_NOT_FOUND, SUCCESS_CODE,
+  SUCCESS_CODE,
 } = require('../codes/codes');
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((user) => res.status(SUCCESS_CODE).send(user))
+  // хешируем пароль
+  bcrypt.hash(password, 10)
+    .then((hashPassword) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hashPassword, // записываем хеш в базу
+    }))
+    .then((user) => res.status(SUCCESS_CODE).send(user.toJSON()))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданы некорректные данные' });
-      } else {
-        res
-          .status(ERROR_UNEXPECTED)
-          .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
+        next(new ErrorValidation('Переданы некорректные данные'));
+      } else if (err.code === 11000) {
+        next(new ErrorSameEmail('Такой e-mail уже зарегистрирован'));
       }
+      next(err);
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .select('+password')
+    .orFail(() => new ErrorAuthorization('Пользователь с таким email-ом не найден'))
+    .then((user) => {
+      bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (matched) {
+            // аутентификация успешна
+            const token = jwt.sign({ _id: user._id }, 'tokenkey', { expiresIn: '7d' });
+            res.cookie('jwt', token, {
+              maxAge: 3600000 * 24 * 7,
+              httpOnly: true,
+            });
+            // вернём токен
+            res.send(user);
+          } else {
+            throw new ErrorAuthorization('Неверный пароль');
+          }
+        })
+        .catch(next);
+    })
+    .catch(next);
+};
+
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .orFail(new ErrorNotFound('Пользователь с таким id не найден'))
+    .then((user) => res.send(user))
+    .catch((err) => next(err));
+};
+
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch((err) => {
-      res
-        .status(ERROR_UNEXPECTED)
-        .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
-    });
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(() => new Error('NotFoundError'))
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new ErrorNotFound('Пользователь с таким id не найден');
+      } else {
+        next(res.send(user));
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'NotFoundError') {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Пользователь с указанным _id не найден' });
-      } else {
-        res
-          .status(ERROR_UNEXPECTED)
-          .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
-      }
+        next(new ErrorValidation('Переданы некорректные данные'));
+      } else next(err);
     });
 };
 
-module.exports.updateUserProfile = (req, res) => {
+module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => new Error('NotFoundError'))
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new ErrorNotFound('Пользователь с таким id не найден');
+      } else {
+        next(res.send(user));
+      }
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({
-            message: 'Переданы некорректные данные при обновлении профиля',
-          });
-      } else if (err.message === 'NotFoundError') {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Пользователь с указанным _id не найден' });
-      } else {
-        res
-          .status(ERROR_UNEXPECTED)
-          .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
-      }
+        next(new ErrorValidation('Переданы некорректные данные'));
+      } else next(err);
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => new Error('NotFoundError'))
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new ErrorNotFound('Пользователь с таким id не найден');
+      } else {
+        next(res.send(user));
+      }
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(ERROR_VALIDATION)
-          .send({
-            message: 'Переданы некорректные данные при обновлении аватара',
-          });
-      } else if (err.message === 'NotFoundError') {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Пользователь с указанным _id не найден' });
-      } else {
-        res
-          .status(ERROR_UNEXPECTED)
-          .send({ message: `Произошла неизвестная ошибка: ${err.message} ` });
-      }
+        next(new ErrorValidation('Переданы некорректные данные'));
+      } else next(err);
     });
 };

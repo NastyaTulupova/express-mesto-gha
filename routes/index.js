@@ -1,14 +1,21 @@
 const router = require('express').Router();
 const userRoutes = require('./users');
 const cardRoutes = require('./cards');
+const { createUser, login } = require('../controllers/users');
+const authorization = require('../middlewares/auth');
+const { validateCreateUser, validateLogin } = require('../validation/validation');
 
-const { ERROR_NOT_FOUND } = require('../codes/codes');
+const ErrorNotFound = require('../errors/errorNotFound');
 
 router.use('/users', userRoutes);
 router.use('/cards', cardRoutes);
 
-router.use('/', (reg, res) => {
-  res.status(ERROR_NOT_FOUND).send({ message: 'Произошла непредвиденная ошибка' });
+router.use(authorization);
+router.post('/signup', validateCreateUser, createUser);
+router.post('/signin', validateLogin, login);
+
+router.use('/', (reg, res, next) => {
+  next(new ErrorNotFound('Произошла непредвиденная ошибка'));
 });
 
 module.exports = router;

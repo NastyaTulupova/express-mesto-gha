@@ -1,6 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
+const errorHandler = require('./middlewares/errorHandler');
+
 const router = require('./routes/index');
 
 // Слушаем 3000 порт
@@ -9,20 +13,14 @@ const { PORT = 3000, DB_URL = 'mongodb://localhost:27017/mestodb' } = process.en
 const app = express();
 app.use(express.json());
 app.use(helmet());
-
-// временно хардкодим автора карточки
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64ff70f35ec4c688e53bf2b7',
-  };
-
-  next();
-});
+app.use(cookieParser);
 
 // подключаемся к серверу mongo
 mongoose.connect(DB_URL);
 
 app.use(router);
+app.use(errors());
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает

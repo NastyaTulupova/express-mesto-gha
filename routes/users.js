@@ -1,13 +1,19 @@
 // файл маршрутов
 const router = require('express').Router();
 const {
-  createUser, getUsers, getUserById, updateUserProfile, updateUserAvatar,
+  getUsers, getUserById, updateUserProfile, updateUserAvatar, getCurrentUser,
 } = require('../controllers/users');
 
-router.post('/', createUser);
+const {
+  validateUserId,
+  validateUpdateUserProfile,
+  validateUpdateUserAvatar,
+} = require('../validation/validation');
+
 router.get('/', getUsers);
-router.get('/:userId', getUserById);
-router.patch('/me', updateUserProfile);
-router.patch('/me/avatar', updateUserAvatar);
+router.get('/:userId', validateUserId, getUserById);
+router.patch('/me', validateUpdateUserProfile, updateUserProfile);
+router.patch('/me/avatar', validateUpdateUserAvatar, updateUserAvatar);
+router.get('/me', getCurrentUser);
 
 module.exports = router;
