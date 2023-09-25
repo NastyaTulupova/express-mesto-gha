@@ -7,12 +7,13 @@ const { validateCreateUser, validateLogin } = require('../validation/validation'
 
 const ErrorNotFound = require('../errors/errorNotFound');
 
-router.use('/users', userRoutes);
-router.use('/cards', cardRoutes);
-
-router.use(authorization);
 router.post('/signup', validateCreateUser, createUser);
 router.post('/signin', validateLogin, login);
+
+// Роуты с защитой авторизацией
+router.use(authorization);
+router.use('/users', userRoutes);
+router.use('/cards', cardRoutes);
 
 router.use('/', (reg, res, next) => {
   next(new ErrorNotFound('Произошла непредвиденная ошибка'));
