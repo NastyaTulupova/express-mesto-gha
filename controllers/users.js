@@ -7,6 +7,8 @@ const ErrorValidation = require('../errors/errorValidation');
 const ErrorSameEmail = require('../errors/errorSameEmail');
 const ErrorNotFound = require('../errors/errorNotFound');
 
+const { SECRET_KEY = 'tokenkey' } = process.env;
+
 const {
   SUCCESS_CODE,
 } = require('../codes/codes');
@@ -47,7 +49,7 @@ module.exports.login = (req, res, next) => {
         .then((matched) => {
           if (matched) {
             // аутентификация успешна
-            const token = jwt.sign({ _id: user._id }, 'tokenkey', { expiresIn: '7d' });
+            const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '7d' });
             res.cookie('jwt', token, {
               maxAge: 3600000 * 24 * 7,
               httpOnly: true,
