@@ -9,9 +9,9 @@ const ErrorNotFound = require('../errors/errorNotFound');
 
 const { SECRET_KEY = 'tokenkey' } = process.env;
 
-const {
+/*const {
   SUCCESS_CODE,
-} = require('../codes/codes');
+} = require('../codes/codes');*/
 
 module.exports.createUser = (req, res, next) => {
   const {
@@ -27,7 +27,7 @@ module.exports.createUser = (req, res, next) => {
       email,
       password: hashPassword, // записываем хеш в базу
     }))
-    .then((user) => res.status(SUCCESS_CODE).send(user.toJSON()))
+    .then((user) => res.send(user.toJSON()))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ErrorValidation('Переданы некорректные данные'));
