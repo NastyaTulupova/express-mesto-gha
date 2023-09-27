@@ -13,7 +13,7 @@ const { PORT = 3000, DB_URL = 'mongodb://localhost:27017/mestodb' } = process.en
 const app = express();
 app.use(express.json());
 app.use(helmet());
-app.use(cookieParser);
+app.use(cookieParser());
 
 // подключаемся к серверу mongo
 mongoose.connect(DB_URL);

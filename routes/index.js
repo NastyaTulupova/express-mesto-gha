@@ -9,7 +9,6 @@ const ErrorNotFound = require('../errors/errorNotFound');
 
 router.post('/signup', validateCreateUser, createUser);
 router.post('/signin', validateLogin, login);
-
 // Роуты с защитой авторизацией
 router.use('/users', authorization, userRoutes);
 router.use('/cards', authorization, cardRoutes);

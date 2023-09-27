@@ -5,7 +5,6 @@ const { SECRET_KEY = 'tokenkey' } = process.env;
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
-
   if (!authorization || !authorization.startsWith('Bearer ')) {
     return next(new ErrorAuthorization('Необходима авторизация'));
   }
