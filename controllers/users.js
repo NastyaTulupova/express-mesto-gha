@@ -9,9 +9,9 @@ const ErrorNotFound = require('../errors/errorNotFound');
 
 const { SECRET_KEY = 'tokenkey' } = process.env;
 
-/*const {
+/* const {
   SUCCESS_CODE,
-} = require('../codes/codes');*/
+} = require('../codes/codes'); */
 
 module.exports.createUser = (req, res, next) => {
   const {
@@ -73,6 +73,7 @@ module.exports.getCurrentUser = (req, res, next) => {
 };
 
 module.exports.getUsers = (req, res, next) => {
+console.log ('tut')
   User.find({})
     .then((users) => res.send(users))
     .catch(next);

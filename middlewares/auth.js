@@ -1,24 +1,22 @@
-const jwt = require('jsonwebtoken');
-const ErrorAuthorization = require('../errors/errorAuthorization');
+const jwt = require("jsonwebtoken");
+const ErrorAuthorization = require("../errors/errorAuthorization");
 
-const { SECRET_KEY = 'tokenkey' } = process.env;
+const { SECRET_KEY = "tokenkey" } = process.env;
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    return next(new ErrorAuthorization('Необходима авторизация'));
+
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    next(new ErrorAuthorization("Необходима авторизация"));
   }
 
   let payload;
-  const token = authorization.replace('Bearer ', '');
-
+  const token = authorization.replace("Bearer ", "");
   try {
     payload = jwt.verify(token, SECRET_KEY);
   } catch (err) {
-    return next(new ErrorAuthorization('Необходима авторизация'));
+    next(new ErrorAuthorization("Необходима авторизация"));
   }
-
   req.user = payload; // записываем пейлоуд в объект запроса
-
-  return next(); // пропускаем запрос дальше
+  next(); // пропускаем запрос дальше
 };
