@@ -33,14 +33,14 @@ module.exports.deleteCardById = (req, res, next) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
-        throw new ErrorNotFound('Карточка не найдена');
+        next(new ErrorNotFound('Карточка не найдена'));
       }
       if (card.owner.toString() === req.user._id) {
         card.deleteOne(card)
           .then((cards) => res.send(cards))
           .catch(next);
       } else {
-        throw new ErrorForbidden('Вы не автор данной карточки');
+        next(new ErrorForbidden('Вы не автор данной карточки'));
       }
     })
     .catch(next);
