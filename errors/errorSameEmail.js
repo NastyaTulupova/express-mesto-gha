@@ -1,4 +1,4 @@
-const ERROR_CONFLICT = require('../codes/codes');
+const { ERROR_CONFLICT } = require('../codes/codes');
 
 class ErrorSameEmail extends Error {
   constructor(message) {

@@ -13,7 +13,7 @@ router.post('/signin', validateLogin, login);
 router.use('/users', authorization, userRoutes);
 router.use('/cards', authorization, cardRoutes);
 
-router.use('/', (reg, res, next) => {
+router.use('*', (reg, res, next) => {
   next(new ErrorNotFound('Произошла непредвиденная ошибка'));
 });
 

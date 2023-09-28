@@ -13,7 +13,7 @@ const { SECRET_KEY = 'tokenkey' } = process.env;
 const { ValidationError, CastError } = mongoose.Error;
 
 const {
-  SUCCESS_CODE,
+  SUCCESS_CODE, SAME_OBJECT_CODE,
 } = require('../codes/codes');
 
 module.exports.createUser = (req, res, next) => {
@@ -37,7 +37,7 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err instanceof ValidationError) {
         next(new ErrorValidation('Переданы некорректные данные'));
-      } else if (err.code === 11000) {
+      } else if (err.code === SAME_OBJECT_CODE) {
         next(new ErrorSameEmail('Такой e-mail уже зарегистрирован'));
       } else { next(err); }
     });
