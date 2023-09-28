@@ -1,5 +1,6 @@
 // файл контроллеров
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ErrorAuthorization = require('../errors/errorAuthorization');
@@ -8,6 +9,8 @@ const ErrorSameEmail = require('../errors/errorSameEmail');
 const ErrorNotFound = require('../errors/errorNotFound');
 
 const { SECRET_KEY = 'tokenkey' } = process.env;
+
+const { ValidationError, CastError } = mongoose.Error;
 
 const {
   SUCCESS_CODE,
@@ -32,12 +35,11 @@ module.exports.createUser = (req, res, next) => {
       name, about, avatar, email,
     }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof ValidationError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else if (err.code === 11000) {
         next(new ErrorSameEmail('Такой e-mail уже зарегистрирован'));
-      }
-      next(err);
+      } else { next(err); }
     });
 };
 
@@ -91,7 +93,7 @@ module.exports.getUserById = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof CastError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else next(err);
     });
@@ -109,7 +111,7 @@ module.exports.updateUserProfile = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof ValidationError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else next(err);
     });
@@ -127,7 +129,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof ValidationError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else next(err);
     });

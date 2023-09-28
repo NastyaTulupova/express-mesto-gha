@@ -1,5 +1,9 @@
 // файл контроллеров
 
+const mongoose = require('mongoose');
+
+const { ValidationError, CastError } = mongoose.Error;
+
 const Card = require('../models/card');
 const ErrorForbidden = require('../errors/errorForbidden');
 const ErrorValidation = require('../errors/errorValidation');
@@ -13,7 +17,7 @@ module.exports.createCard = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(SUCCESS_CODE).send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof ValidationError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else next(err);
     });
@@ -27,8 +31,10 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.deleteCardById = (req, res, next) => {
   Card.findByIdAndDelete(req.params.cardId)
-    .orFail(() => new ErrorNotFound('Карточка не найдена'))
     .then((card) => {
+      if (!card) {
+        throw new ErrorNotFound('Карточка не найдена');
+      }
       if (card.owner.toString() === req.user._id) {
         card.deleteOne(card)
           .then((cards) => res.send(cards))
@@ -46,7 +52,6 @@ module.exports.putLikeCardById = (req, res, next) => {
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
-    .orFail(() => new Error('NotFoundError'))
     .then((card) => {
       if (!card) {
         throw new ErrorNotFound('Карточка не найдена');
@@ -55,7 +60,7 @@ module.exports.putLikeCardById = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof CastError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else next(err);
     });
@@ -75,7 +80,7 @@ module.exports.putDislikeCardById = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name instanceof CastError) {
         next(new ErrorValidation('Переданы некорректные данные'));
       } else next(err);
     });
