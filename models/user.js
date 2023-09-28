@@ -26,12 +26,11 @@ const userSchema = new mongoose.Schema(
 
     email: {
       type: String,
-      index: true,
       required: [true, 'email должен быть заполнен'],
       unique: [true, 'email должен быть уникальным'],
       validate: {
         validator: (v) => validator.isEmail(v),
-        message: 'Неверный e-mail',
+        message: 'Неверный email',
       },
     },
 
