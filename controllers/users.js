@@ -73,7 +73,6 @@ module.exports.getCurrentUser = (req, res, next) => {
 };
 
 module.exports.getUsers = (req, res, next) => {
-console.log ('tut')
   User.find({})
     .then((users) => res.send(users))
     .catch(next);
