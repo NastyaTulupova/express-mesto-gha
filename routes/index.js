@@ -10,8 +10,9 @@ const ErrorNotFound = require('../errors/errorNotFound');
 router.post('/signup', validateCreateUser, createUser);
 router.post('/signin', validateLogin, login);
 // Роуты с защитой авторизацией
-router.use('/users', authorization, userRoutes);
-router.use('/cards', authorization, cardRoutes);
+router.use(authorization);
+router.use('/users', userRoutes);
+router.use('/cards', cardRoutes);
 
 router.use('*', (reg, res, next) => {
   next(new ErrorNotFound('Произошла непредвиденная ошибка'));

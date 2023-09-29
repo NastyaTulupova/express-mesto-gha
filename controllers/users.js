@@ -60,7 +60,7 @@ module.exports.login = (req, res, next) => {
               httpOnly: true,
             });
             // вернём токен
-            res.send(user);
+            res.send({ token });
           } else {
             throw new ErrorAuthorization('Неверный пароль');
           }

@@ -30,7 +30,7 @@ module.exports.getCards = (req, res, next) => {
 };
 
 module.exports.deleteCardById = (req, res, next) => {
-  Card.findByIdAndDelete(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         next(new ErrorNotFound('Карточка не найдена'));
